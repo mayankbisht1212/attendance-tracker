@@ -25,6 +25,18 @@
 - `POST /api/register` — create a new user.
 - `GET|POST /api/auth/[...nextauth]` — authentication endpoints (NextAuth).
 
+**OAuth / Social login (Google)**
+- This project includes a Google provider in `lib/auth.ts`. To enable Google sign-in:
+	1. Create OAuth credentials in the Google Cloud Console (OAuth 2.0 Client IDs).
+	2. Set the authorized redirect URI to: `https://your-domain.com/api/auth/callback/google` (use your Vercel URL for production) and `http://localhost:3000/api/auth/callback/google` for local testing.
+	3. Add the credentials to environment variables:
+		 - `GOOGLE_CLIENT_ID`
+		 - `GOOGLE_CLIENT_SECRET`
+	4. In development you can add them to your local `.env` (they are placeholders already present).
+	5. In Vercel add them under Project → Settings → Environment Variables for both Preview and Production deployments.
+
+The signup and signin pages include a Google button which calls `signIn('google', { callbackUrl: '/dashboard' })` when the provider is available.
+
 **Notes & Troubleshooting**
 - If Prisma migration complains about `DATABASE_URL`, ensure `.env` exists and `prisma.config.ts` loads env vars (this repo includes `import "dotenv/config"` in that file).
 - Dev server logs: `.next/dev/logs/next-development.log`.
