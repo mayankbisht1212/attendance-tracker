@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  firstName    String
+  lastName     String
+  department   String
+  passwordHash String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  enrollments      Enrollment[]
+  timetableEntries TimetableEntry[]
+}
+
+
+model Attendance {
+  id           String @id @default(cuid())
+
+  enrollmentId String
+  sessionId    String
+  status       AttendanceStatus
+
+  enrollment   Enrollment   @relation(fields: [enrollmentId], references: [id])
+  session      ClassSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([enrollmentId, sessionId])
+}
+
+
+model Subject {
+  id          String       @id @default(cuid())
+  name        String
+  code        String       @unique
+  credits     Int?
+
+  enrollments      Enrollment[]
+  classes          ClassSession[]
+  timetableEntries TimetableEntry[]
+}
+
+
+model Enrollment {
+  id        String   @id @default(cuid())
+
+  userId    String
+  subjectId String
+
+  user      User     @relation(fields: [userId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+
+  attendance Attendance[]
+
+  @@unique([userId, subjectId])
+}
+
+
+model ClassSession {
+  id         String       @id @default(cuid())
+
+  subjectId  String
+  date       DateTime
+
+  subject    Subject      @relation(fields: [subjectId], references: [id])
+  attendance Attendance[]
+
+  @@unique([subjectId, date])
+}
+
+model TimetableEntry {
+  id        String  @id @default(cuid())
+  userId    String
+  subjectId String
+  semester  Int
+  day       Weekday
+  startTime String
+  endTime   String
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId, semester, day])
+  @@index([userId, semester, day])
+}
+
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
